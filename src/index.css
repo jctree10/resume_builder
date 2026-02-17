@@ -1884,4 +1884,14 @@ body {
     display: grid; 
     /* Ensure grid prints correctly */
   }
+
+  /* Force background colors/images to print for separators */
+  .cv-section-title::before,
+  .cv-section-title::after,
+  .cv-header-separator-line,
+  .cv-line,
+  .cv-vertical-divider {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
