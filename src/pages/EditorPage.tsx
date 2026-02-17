@@ -25,6 +25,7 @@ import {
   Download,
   Eraser,
   GripVertical,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { useResumeStore } from "../store/useResumeStore";
@@ -203,6 +204,47 @@ export default function EditorPage() {
     }
   };
 
+  /* ── JSON Export/Import ──────────────── */
+  const exportJson = () => {
+    const data = useResumeStore.getState();
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    saveAs(
+      blob,
+      `resume-backup-${new Date().toISOString().split("T")[0]}.json`,
+    );
+  };
+
+  const importJson = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = e.target?.result as string;
+        const data = JSON.parse(json);
+        if (data && data.sections) {
+          if (
+            confirm(
+              "This will overwrite your current resume data. Are you sure?",
+            )
+          ) {
+            useResumeStore.setState(data);
+          }
+        } else {
+          alert("Invalid JSON file");
+        }
+      } catch (err) {
+        console.error("Failed to parse JSON", err);
+        alert("Failed to parse JSON file");
+      }
+    };
+    reader.readAsText(file);
+    // Reset input value so same file can be selected again
+    event.target.value = "";
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -370,6 +412,37 @@ export default function EditorPage() {
                   <FileText size={14} />
                   {exporting ? "Generating…" : "Download .docx"}
                 </button>
+
+                <hr className="ed-sidebar-divider" />
+
+                <label className="ed-label">Data Management</label>
+
+                <button
+                  type="button"
+                  className="ed-export-btn"
+                  onClick={exportJson}
+                >
+                  <Download size={14} />
+                  Export JSON
+                </button>
+
+                <button
+                  type="button"
+                  className="ed-export-btn"
+                  onClick={() =>
+                    document.getElementById("import-json-input")?.click()
+                  }
+                >
+                  <Upload size={14} />
+                  Import JSON
+                </button>
+                <input
+                  type="file"
+                  id="import-json-input"
+                  accept=".json"
+                  style={{ display: "none" }}
+                  onChange={importJson}
+                />
 
                 <hr className="ed-sidebar-divider" />
 
